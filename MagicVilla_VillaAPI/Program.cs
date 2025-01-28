@@ -1,8 +1,21 @@
+using MagicVilla_VillaAPI.DB;
+using MagicVilla_VillaAPI.MapperConfig;
+using MagicVilla_VillaAPI.Repository;
+using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddDbContext<ApplicationDBContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddScoped<IVillaRepository,VillaRepository>();
 // Add services to the container.
-
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    //options.ReturnHttpNotAcceptable = true;
+}).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
