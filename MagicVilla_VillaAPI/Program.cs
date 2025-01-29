@@ -11,6 +11,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 });
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 builder.Services.AddScoped<IVillaRepository,VillaRepository>();
+builder.Services.AddScoped<IVillaNumberRepository,VillaNumberRepository>();
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {

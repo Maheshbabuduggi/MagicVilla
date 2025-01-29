@@ -4,6 +4,7 @@ using MagicVilla_VillaAPI.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MagicVilla_VillaAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250128161319_addedForeignkeytoVillaNumbers")]
+    partial class addedForeignkeytoVillaNumbers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,66 +73,66 @@ namespace MagicVilla_VillaAPI.Migrations
                         {
                             Id = 1,
                             Amenity = "",
-                            CreatedDate = new DateTime(2025, 1, 28, 22, 18, 10, 542, DateTimeKind.Local).AddTicks(6012),
+                            CreatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9620),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
                             ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa3.jpg",
                             Name = "Royal Villa",
                             Occupancy = 4,
                             Rate = 200.0,
                             Sqft = 550,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9611)
                         },
                         new
                         {
                             Id = 2,
                             Amenity = "",
-                            CreatedDate = new DateTime(2025, 1, 28, 22, 18, 10, 542, DateTimeKind.Local).AddTicks(6032),
+                            CreatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9625),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
                             ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa1.jpg",
                             Name = "Premium Pool Villa",
                             Occupancy = 4,
                             Rate = 300.0,
                             Sqft = 550,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9622)
                         },
                         new
                         {
                             Id = 3,
                             Amenity = "",
-                            CreatedDate = new DateTime(2025, 1, 28, 22, 18, 10, 542, DateTimeKind.Local).AddTicks(6035),
+                            CreatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9628),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
                             ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa4.jpg",
                             Name = "Luxury Pool Villa",
                             Occupancy = 4,
                             Rate = 400.0,
                             Sqft = 750,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9627)
                         },
                         new
                         {
                             Id = 4,
                             Amenity = "",
-                            CreatedDate = new DateTime(2025, 1, 28, 22, 18, 10, 542, DateTimeKind.Local).AddTicks(6038),
+                            CreatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9632),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
                             ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa5.jpg",
                             Name = "Diamond Villa",
                             Occupancy = 4,
                             Rate = 550.0,
                             Sqft = 900,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9630)
                         },
                         new
                         {
                             Id = 5,
                             Amenity = "",
-                            CreatedDate = new DateTime(2025, 1, 28, 22, 18, 10, 542, DateTimeKind.Local).AddTicks(6040),
+                            CreatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9636),
                             Details = "Fusce 11 tincidunt maximus leo, sed scelerisque massa auctor sit amet. Donec ex mauris, hendrerit quis nibh ac, efficitur fringilla enim.",
                             ImageUrl = "https://dotnetmastery.com/bluevillaimages/villa2.jpg",
                             Name = "Diamond Pool Villa",
                             Occupancy = 4,
                             Rate = 600.0,
                             Sqft = 1100,
-                            UpdatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedDate = new DateTime(2025, 1, 28, 21, 43, 18, 481, DateTimeKind.Local).AddTicks(9634)
                         });
                 });
 
