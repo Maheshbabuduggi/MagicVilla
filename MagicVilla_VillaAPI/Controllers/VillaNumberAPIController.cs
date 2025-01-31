@@ -92,12 +92,12 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (villaNumberCreateDTO == null) return BadRequest();
                 if (await _dbVillaNumber.GetAsync(u => u.VillaNO== villaNumberCreateDTO.VillaNO) != null)
                 {
-                    ModelState.AddModelError("CustomError", "VillaNumber already exists!");
+                    ModelState.AddModelError("ErrorMessages", "VillaNumber already exists!");
                     return BadRequest(ModelState);
                 }
                 if (await _dbVilla.GetAsync(x => x.Id == villaNumberCreateDTO.VillaId)==null)
                 {
-                    ModelState.AddModelError("CustomError","Invalid Villa ID Plz enter available VillaId's ");
+                    ModelState.AddModelError("ErrorMessages", "Invalid Villa ID Plz enter available VillaId's ");
                     return BadRequest(ModelState);
                 }
 
