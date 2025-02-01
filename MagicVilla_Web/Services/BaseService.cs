@@ -9,7 +9,7 @@ namespace MagicVilla_Web.Services
     public class BaseService : IBaseService
     {
         public APIResponse responseModel { get; set; }
-        public IHttpClientFactory httpClient {  get; set; }
+        public IHttpClientFactory httpClient { get; set; }
         public BaseService(IHttpClientFactory httpClient)
         {
             this.httpClient = httpClient;
@@ -47,6 +47,13 @@ namespace MagicVilla_Web.Services
                 }
 
                 HttpResponseMessage apiResponse = null;
+
+                if (!string.IsNullOrEmpty(apiRequest.Token))
+                {
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiRequest.Token);
+                }
+
+
                 apiResponse = await client.SendAsync(message);
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();
                 try
@@ -62,7 +69,8 @@ namespace MagicVilla_Web.Services
                         return returnObj;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
 
 
                     var exceptionResponse = JsonConvert.DeserializeObject<T>(apiContent);
@@ -70,8 +78,8 @@ namespace MagicVilla_Web.Services
                 }
                 var APIResponse = JsonConvert.DeserializeObject<T>(apiContent);
                 return APIResponse;
-                
-                
+
+
 
             }
             catch (Exception ex)
