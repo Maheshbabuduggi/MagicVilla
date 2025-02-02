@@ -4,6 +4,7 @@ using MagicVilla_VillaAPI.Repository;
 using MagicVilla_VillaAPI.Repository.IRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -15,6 +16,20 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IVillaRepository, VillaRepository>();
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1,0);
+
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+
+
 builder.Services.AddScoped<IVillaNumberRepository, VillaNumberRepository>();
 var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
 builder.Services.AddAuthentication(x =>
@@ -71,9 +86,46 @@ builder.Services.AddSwaggerGen(options =>
         },
         new List<string>() }
     });
-}
+    //swagger doc for v1
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1.0",
+        Title = "Magic Villa V1",
+        Description = "API to manage Villa",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact=new OpenApiContact
+        {
+            Name="Example Conatct",
+            Url= new Uri("https://example.com/contact")
+        },
+        License=new OpenApiLicense
+        {
+            Name = "Example Conatct",
+            Url = new Uri("https://example.com/license")
+        }
 
-    );
+    });
+
+    // swaggerdoc for v2
+    options.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Version = "v2.0",
+        Title = "Magic Villa V2",
+        Description = "API to manage Villa",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new OpenApiContact
+        {
+            Name = "Example Conatct",
+            Url = new Uri("https://example.com/contact")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Example Conatct",
+            Url = new Uri("https://example.com/license")
+        }
+
+    });
+});
 
 var app = builder.Build();
 
@@ -81,7 +133,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "MagicVilla_API_V1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "MagicVilla_API_V2");
+    });
 }
 
 app.UseHttpsRedirection();
