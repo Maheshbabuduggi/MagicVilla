@@ -1,7 +1,9 @@
-﻿using MagicVilla_VillaAPI.DB;
+﻿using AutoMapper;
+using MagicVilla_VillaAPI.DB;
 using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.Dto;
 using MagicVilla_VillaAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,16 +14,20 @@ namespace MagicVilla_VillaAPI.Repository
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDBContext _db;
+        private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
         private string secretKey;
 
-        public UserRepository(ApplicationDBContext db,IConfiguration configuration)
+        public UserRepository(IMapper mapper,ApplicationDBContext db,IConfiguration configuration,UserManager<ApplicationUser> userManager)
         {
             _db = db;
+            _mapper = mapper;
+            _userManager = userManager;
             secretKey = configuration.GetValue<string>("ApiSettings:Secret");
         }
         public bool IsUniqueUser(string username)
         {
-            var user=_db.LocalUsers.FirstOrDefault(x=>x.UserName == username.ToLower());
+            var user=_db.ApplicationUsers.FirstOrDefault(x=>x.UserName == username.ToLower());
             if (user == null) { 
             return true;
             }
@@ -30,9 +36,12 @@ namespace MagicVilla_VillaAPI.Repository
 
         public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
         {
-            var user=_db.LocalUsers.FirstOrDefault(u=>u.UserName.ToLower()==loginRequestDTO.UserName.ToLower() 
-            && u.Password==loginRequestDTO.Password);
-            if (user==null)
+            var user=_db.ApplicationUsers
+                .FirstOrDefault(u=>u.UserName.ToLower()==loginRequestDTO.UserName.ToLower());
+           
+            bool isvalid=await _userManager.CheckPasswordAsync(user, loginRequestDTO.Password);
+            
+            if (user==null || isvalid==false)
             {
                 return new LoginResponseDTO()
                 {
@@ -40,6 +49,9 @@ namespace MagicVilla_VillaAPI.Repository
                     User = null
                 };
             }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key=Encoding.ASCII.GetBytes(secretKey);
 
@@ -48,7 +60,7 @@ namespace MagicVilla_VillaAPI.Repository
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name,user.Name),
-                    new Claim(ClaimTypes.Role,user.Role)
+                    new Claim(ClaimTypes.Role,roles.FirstOrDefault())
                 }),
                 Expires = DateTime.UtcNow.AddDays(1),
                 SigningCredentials=new(new SymmetricSecurityKey(key),SecurityAlgorithms.HmacSha256Signature)
@@ -59,7 +71,8 @@ namespace MagicVilla_VillaAPI.Repository
             LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
             {
                 Token = tokenHandler.WriteToken(token),
-                User = user
+                User = _mapper.Map<UserDTO>(user),
+                Role=roles.FirstOrDefault()
             };
             return loginResponseDTO;
         }
