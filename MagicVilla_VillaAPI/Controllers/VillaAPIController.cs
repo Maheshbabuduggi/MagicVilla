@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Text.Json;
 
 namespace MagicVilla_VillaAPI.Controllers
 {
@@ -36,23 +37,27 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
        // [Authorize]
         public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name ="filter by Occupancy")]int? occupancy,
-            [FromQuery(Name ="filter by Name")]string? search)
+            [FromQuery(Name ="filter by Name")]string? search,int pagesize=3,int pageNumber=1)
         {
             try
             {
                 IEnumerable<Villa> villaList;
                 if (occupancy > 0)
                 {
-                    villaList = await _dbVilla.GetAllAsync(u => u.Occupancy > occupancy);
+                    villaList = await _dbVilla.GetAllAsync(u => u.Occupancy > occupancy,pageSize:pagesize,pageNumber:pageNumber);
                 }
                 else
                 {
-                   villaList= await _dbVilla.GetAllAsync();
+                   villaList= await _dbVilla.GetAllAsync(pageSize: pagesize, pageNumber: pageNumber);
                 }
                 if (!string.IsNullOrEmpty(search))
                 {
                     villaList = villaList.Where(u => u.Name.ToLower().Contains(search.ToLower()));
                 }
+
+                Pagination pagination = new Pagination() { pagesize = pagesize,pagenumber=pageNumber };
+
+                Response.Headers.Add("X-Paginatio", JsonSerializer.Serialize(pagination));
                 _response.Result = _mapper.Map<List<VillaDTO>>(villaList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);

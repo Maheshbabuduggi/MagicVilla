@@ -21,20 +21,27 @@ namespace MagicVilla_VillaAPI.Repository
             await SaveAsync();
         }
 
-        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null,int pageSize=3,int pageNumber=1)
         {
             IQueryable<T> entity = dbSet;
             if (filter != null)
             {
                 entity = entity.Where(filter);
             }
-            if(includeProperties != null)
+            if (pageSize > 0)
+            {
+                if (pageNumber > 100) { pageNumber = 100; }
+                entity = entity.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+
+            }
+            if (includeProperties != null)
             {
                 foreach(var includeProp in includeProperties.Split(new char[] {','},StringSplitOptions.RemoveEmptyEntries))
                 {
                     entity=entity.Include(includeProp);
                 }
             }
+            
             return await entity.ToListAsync();
         }
 
