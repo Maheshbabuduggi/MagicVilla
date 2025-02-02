@@ -34,12 +34,25 @@ namespace MagicVilla_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [Authorize]
-        public async Task<ActionResult<APIResponse>> GetVillas()
+       // [Authorize]
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name ="filter by Occupancy")]int? occupancy,
+            [FromQuery(Name ="filter by Name")]string? search)
         {
             try
             {
-                IEnumerable<Villa> villaList = await _dbVilla.GetAllAsync();
+                IEnumerable<Villa> villaList;
+                if (occupancy > 0)
+                {
+                    villaList = await _dbVilla.GetAllAsync(u => u.Occupancy > occupancy);
+                }
+                else
+                {
+                   villaList= await _dbVilla.GetAllAsync();
+                }
+                if (!string.IsNullOrEmpty(search))
+                {
+                    villaList = villaList.Where(u => u.Name.ToLower().Contains(search.ToLower()));
+                }
                 _response.Result = _mapper.Map<List<VillaDTO>>(villaList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
@@ -53,7 +66,7 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpGet("{id:int}", Name = "GetVilla")]
-        [Authorize]
+        //[Authorize]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
