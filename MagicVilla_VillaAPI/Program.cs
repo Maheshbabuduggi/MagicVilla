@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -53,9 +54,15 @@ builder.Services.AddAuthentication(x =>
 
                 });
 
+
+builder.Services.AddResponseCaching();
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
+    options.CacheProfiles.Add("Default30", new Microsoft.AspNetCore.Mvc.CacheProfile
+    {
+        Duration = 30
+    });
     //options.ReturnHttpNotAcceptable = true;
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -126,7 +133,6 @@ builder.Services.AddSwaggerGen(options =>
 
     });
 });
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
