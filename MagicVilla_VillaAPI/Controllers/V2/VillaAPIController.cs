@@ -110,7 +110,7 @@ namespace MagicVilla_VillaAPI.Controllers.V2
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Authorize(Roles = "admin")]
-        public async Task<ActionResult<APIResponse>> CreateVilla([FromBody] VillaCreateDTO villaCreateDTO)
+        public async Task<ActionResult<APIResponse>> CreateVilla([FromForm] VillaCreateDTO villaCreateDTO)
         {
             try
             {
@@ -120,9 +120,40 @@ namespace MagicVilla_VillaAPI.Controllers.V2
                     ModelState.AddModelError("ErrorMessages", "Name already exists!");
                     return BadRequest(ModelState);
                 }
+
+
                 Villa villa = _mapper.Map<Villa>(villaCreateDTO);
                 villa.CreatedDate = DateTime.Now;
                 await _dbVilla.CreateAsync(villa);
+                if (villaCreateDTO.Image != null)
+                {
+                    string fileName = villa.Id + Path.GetExtension(villaCreateDTO.Image.FileName);
+                    string filePath = @"wwwroot\ProductImage\" + fileName;
+
+                    var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+                    FileInfo file = new FileInfo(directoryLocation);
+                    if (file.Exists)
+                    {
+                        file.Delete();
+                    }
+
+                    using(var fileStream=new FileStream(directoryLocation, FileMode.Create))
+                    {
+                        villaCreateDTO.Image.CopyTo(fileStream);
+                    }
+
+                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                    villa.ImageUrl=baseUrl+"/ProductImage/"+fileName;
+                    villa.ImageLocalPath = filePath;
+
+                }
+                else
+                {
+                    villa.ImageUrl = "https://plcaehold.co/600*400";
+                }
+
+                await _dbVilla.UpdateAsync(villa);
                 _response.Result = _mapper.Map<VillaDTO>(villa);
                 _response.StatusCode = HttpStatusCode.Created;
                 return CreatedAtRoute("GetVilla", new { id = villa.Id }, _response);

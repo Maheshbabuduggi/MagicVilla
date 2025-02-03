@@ -64,10 +64,10 @@ builder.Services.AddResponseCaching();
 // Add services to the container.
 builder.Services.AddControllers(options =>
 {
-    options.CacheProfiles.Add("Default30", new Microsoft.AspNetCore.Mvc.CacheProfile
-    {
-        Duration = 30
-    });
+    //options.CacheProfiles.Add("Default30", new Microsoft.AspNetCore.Mvc.CacheProfile
+    //{
+    //    Duration = 30
+    //});
     //options.ReturnHttpNotAcceptable = true;
 }).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
