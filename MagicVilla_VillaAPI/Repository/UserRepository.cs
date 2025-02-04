@@ -37,7 +37,7 @@ namespace MagicVilla_VillaAPI.Repository
             return false;
         }
 
-        public async Task<LoginResponseDTO> Login(LoginRequestDTO loginRequestDTO)
+        public async Task<TokenDTO> Login(LoginRequestDTO loginRequestDTO)
         {
             var user = _db.ApplicationUsers
                 .FirstOrDefault(u => u.UserName.ToLower() == loginRequestDTO.UserName.ToLower());
@@ -46,10 +46,9 @@ namespace MagicVilla_VillaAPI.Repository
 
             if (user == null || isvalid == false)
             {
-                return new LoginResponseDTO()
+                return new TokenDTO()
                 {
-                    Token = "",
-                    User = null
+                    Token = ""
                 };
             }
 
@@ -71,13 +70,12 @@ namespace MagicVilla_VillaAPI.Repository
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            LoginResponseDTO loginResponseDTO = new LoginResponseDTO()
+            TokenDTO Tokendto = new TokenDTO()
             {
-                Token = tokenHandler.WriteToken(token),
-                User = _mapper.Map<UserDTO>(user),
+                Token = tokenHandler.WriteToken(token)
                // Role = roles.FirstOrDefault()
             };
-            return loginResponseDTO;
+            return Tokendto;
         }
 
         public async Task<UserDTO> Register(RegistrationRequestDTO registrationRequestDTO)

@@ -1,8 +1,8 @@
 ﻿namespace MagicVilla_Web.Models.Dto
 {
-    public class LoginResponseDTO
+    public class TokenDTO
     {
-        public UserDTO User { get; set; }
+       // public UserDTO User { get; set; }
         public string Token {  get; set; }
     }
 }

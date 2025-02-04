@@ -34,7 +34,7 @@ namespace MagicVilla_VillaAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ResponseCache(CacheProfileName = "Default30")]
+       // [ResponseCache(CacheProfileName = "Default30")]
         public async Task<ActionResult<APIResponse>> GetVillaNumbers()
         {
             try
@@ -54,7 +54,7 @@ namespace MagicVilla_VillaAPI.Controllers
 
        
        // [Authorize]
-        [ResponseCache(CacheProfileName = "Default30")]   
+       // [ResponseCache(CacheProfileName = "Default30")]   
         [HttpGet("{id:int}", Name = "GetVillaNumber")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
