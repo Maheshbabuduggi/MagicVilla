@@ -140,7 +140,12 @@ namespace MagicVilla_VillaAPI.Repository
                 return new TokenDTO();
             }
             // when someone tries to use not valid refresh token, fraud possible
-
+            if (!existingRefreshToken.IsValid) {
+                var chainRecords = _db.RefreshTokens.Where(u => u.UserId == existingRefreshToken.UserId
+                && u.JwtTokenId == existingRefreshToken.JwtTokenId).ExecuteUpdate(u => u.SetProperty(refreshToken => refreshToken.IsValid, false));
+                return new TokenDTO();
+            
+            }
 
 
             // if just expired then mark ad invalid and return empty
