@@ -11,7 +11,7 @@ namespace MagicVilla_VillaAPI.DB
         
 
         public DbSet<Villa> Villas { get; set; }
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         public DbSet<LocalUser> LocalUsers { get; set; }
