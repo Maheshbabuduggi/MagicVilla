@@ -1,3 +1,4 @@
+using MagicVilla_Web.Extensions;
 using MagicVilla_Web.MapperConfig;
 using MagicVilla_Web.Services;
 using MagicVilla_Web.Services.IServices;
@@ -11,7 +12,7 @@ builder.Services.AddHttpClient<IVillaService, VillaService>();
 builder.Services.AddHttpClient<IVillaNumberService, VillaNumberService>();
 builder.Services.AddHttpClient<IAuthService, AuthService>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(u=>u.Filters.Add(new AuthExceptionRedirection()));
 builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 builder.Services.AddScoped<IBaseService, BaseService>();

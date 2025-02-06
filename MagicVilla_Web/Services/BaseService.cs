@@ -4,7 +4,11 @@ using MagicVilla_Web.Models;
 using MagicVilla_Web.Models.Dto;
 using MagicVilla_Web.Services.IServices;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Newtonsoft.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 
 namespace MagicVilla_Web.Services
@@ -44,11 +48,11 @@ namespace MagicVilla_Web.Services
                         message.Headers.Add("Accept", "application/json");
                     }
                     message.RequestUri = new Uri(apiRequest.Url);
-                    if (withBearer && _tokenProvider.GetToken() != null)
-                    {
-                        var token = _tokenProvider.GetToken();
-                        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.AccessToken);
-                    }
+                    //if (withBearer && _tokenProvider.GetToken() != null)
+                    //{
+                    //    var token = _tokenProvider.GetToken();
+                    //    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.AccessToken);
+                    //}
 
                     if (apiRequest.ContentType == SD.ContentType.MultipartFormData)
                     {
@@ -101,38 +105,55 @@ namespace MagicVilla_Web.Services
                 };
 
 
-                HttpResponseMessage apiResponse = null;
+                HttpResponseMessage httpResponseMessage = null;
 
 
 
 
-                apiResponse = await SendWithRefreshTokenAsync(client, messageFactory, withBearer);
-                var apiContent = await apiResponse.Content.ReadAsStringAsync();
+                httpResponseMessage = await SendWithRefreshTokenAsync(client, messageFactory, withBearer);
+
+                APIResponse FinalApiResponse = new()
+                {
+                    IsSuccess = false
+                };
+
                 try
                 {
-                    APIResponse ApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
-                    if (ApiResponse != null && (apiResponse.StatusCode == System.Net.HttpStatusCode.BadRequest ||
-                        apiResponse.StatusCode == System.Net.HttpStatusCode.NotFound))
+                    switch (httpResponseMessage.StatusCode)
                     {
-                        ApiResponse.StatusCode = System.Net.HttpStatusCode.BadRequest;
-                        ApiResponse.IsSuccess = false;
-                        var res = JsonConvert.SerializeObject(ApiResponse);
-                        var returnObj = JsonConvert.DeserializeObject<T>(res);
-                        return returnObj;
+                        case System.Net.HttpStatusCode.NotFound:
+                            FinalApiResponse.ErrorMessages = new List<string>() { "Not Found" };
+                            break;
+                        case System.Net.HttpStatusCode.Forbidden:
+                            FinalApiResponse.ErrorMessages = new List<string>() { "Access Denied" };
+                            break;
+                        case System.Net.HttpStatusCode.Unauthorized:
+                            FinalApiResponse.ErrorMessages = new List<string>() { "Unauthorized" };
+                            break;
+                        case System.Net.HttpStatusCode.InternalServerError:
+                            FinalApiResponse.ErrorMessages = new List<string>() { "Internal Server Error" };
+                            break;
+                        default:
+                            var apiContent=await httpResponseMessage.Content.ReadAsStringAsync();
+                            FinalApiResponse.IsSuccess=true;
+                            FinalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                            break;
+
                     }
+                       
                 }
                 catch (Exception ex)
                 {
+                    FinalApiResponse.ErrorMessages = new List<string>() { "Error Encountered", ex.Message.ToString() };
 
-
-                    var exceptionResponse = JsonConvert.DeserializeObject<T>(apiContent);
-                    return exceptionResponse;
                 }
-                var APIResponse = JsonConvert.DeserializeObject<T>(apiContent);
-                return APIResponse;
-
-
-
+                var res = JsonConvert.SerializeObject(FinalApiResponse);
+                var returnObj = JsonConvert.DeserializeObject<T>(res);
+                return returnObj;
+            }
+            catch(AuthException ae)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -166,18 +187,33 @@ namespace MagicVilla_Web.Services
 
                 try
                 {
-                    var response=await httpClient.SendAsync(httpRequestMessageFactory());
+                    var response = await httpClient.SendAsync(httpRequestMessageFactory());
                     if (response.IsSuccessStatusCode)
                     {
                         return response;
                     }
 
                     // if everything is not vlid to call end point to pass refresh token
-
+                    if (!response.IsSuccessStatusCode && response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        // generate new token from refresh token / sign in with that new token and then retry
+                        await InvokeRefreshTokenEndpoint(httpClient, tokenDTO.AccessToken, tokenDTO.RefreshToken);
+                        response = await httpClient.SendAsync(httpRequestMessageFactory());
+                        return response;
+                    }
                     return response;
                 }
-                catch (Exception ex) {
+                catch(AuthException ae)
+                {
+                    throw;
+                }
+                catch (HttpRequestException httpRequestException)
+                {
+                    if (httpRequestException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
 
+                        await InvokeRefreshTokenEndpoint(httpClient, tokenDTO.AccessToken, tokenDTO.RefreshToken);
+                        return await httpClient.SendAsync(httpRequestMessageFactory());
+                    }
                     throw;
                 }
             }
@@ -199,10 +235,11 @@ namespace MagicVilla_Web.Services
             var response=await client.SendAsync(message);
             var content =await response.Content.ReadAsStringAsync();
             var apiResponse=JsonConvert.DeserializeObject<APIResponse>(content);
-            if (apiResponse?.IsSuccess != null)
+            if (apiResponse?.IsSuccess != true)
             {
                 await _contextAccessor.HttpContext.SignOutAsync();
                 _tokenProvider.ClearToken();
+                throw new AuthException();
             }
             else
             {
@@ -210,11 +247,29 @@ namespace MagicVilla_Web.Services
                 var tokenDto = JsonConvert.DeserializeObject<TokenDTO>(tokenDataStr);
                 if (tokenDto != null&&!string.IsNullOrEmpty(tokenDto.AccessToken)) {
 
+                    await SignInWithNewTokens(tokenDto);
+
                     client.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenDto.AccessToken);
 
                 }
             }
+        }
+
+        private async Task SignInWithNewTokens(TokenDTO tokenDTO)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(tokenDTO.AccessToken);
+
+            var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+            identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "unique_name").Value));
+            identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+            var principal = new ClaimsPrincipal(identity);
+            await _contextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                principal);
+
+            _tokenProvider.SetToken(tokenDTO);
+
         }
 
 
