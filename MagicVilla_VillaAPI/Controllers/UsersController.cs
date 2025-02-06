@@ -91,5 +91,22 @@ namespace MagicVilla_VillaAPI.Controllers
                 return BadRequest(_response);
             }
         }
+
+        [HttpPost("revoke")]
+        public async Task<IActionResult> RevokeRefreshToken([FromBody] TokenDTO tokenDTO)
+        {
+            if (ModelState.IsValid)
+            {
+                await _userRepo.RevokeRefreshToken(tokenDTO);
+                _response.StatusCode = System.Net.HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                return BadRequest(_response);
+            }
+            
+            _response.Result = "Invalid Input";
+            _response.IsSuccess = false;
+            return BadRequest(_response);
+        }
+
     }
 }
